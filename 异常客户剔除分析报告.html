@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>异常客户剔除分析报告 - 厦门市4月数据</title>
+    
+    <!-- 静态资源引用 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- 内联数据区 -->
+    <script>
+        const sampleData = [
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205100469, "客户名称": "厦门市海沧区香津茶叶店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205102600, "客户名称": "厦门市海沧区巧当佳食杂店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205102612, "客户名称": "厦门市海沧区水岸翠娇便利店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205103041, "客户名称": "厦门市海沧区郑爱华便利店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205103267, "客户名称": "厦门市海沧区兴睿鑫烟酒商行", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205103403, "客户名称": "厦门市海沧区阿龙食杂店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205103469, "客户名称": "厦门市海沧区源记便利店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205103543, "客户名称": "厦门市海沧区亿家福便利店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205103567, "客户名称": "厦门市海沧区鑫利源食杂店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"},
+            {"业务日期": "2026-04-01", "省份": "福建", "地市": "厦门", "区县": "厦门市烟草专卖局集美区局（分公司）", "信息员": "", "许可证号": 350205103607, "客户名称": "厦门市海沧区诚信食杂店", "样本户层级": "", "客户分档名称": "三十档", "是否价采户": "否", "异常信息": "客户前140天销购比不在合理区间内"}
+        ];
+
+        const overviewStats = {
+            "total_records": 1094,
+            "total_customers": 187,
+            "total_districts": 4,
+            "date_range": "2026-04-01 至 2026-04-18",
+            "main_abnormal_reason": "客户前140天销购比不在合理区间内",
+            "main_abnormal_count": 1003,
+            "main_abnormal_ratio": 91.68
+        };
+
+        const abnormalData = {
+            "labels": ["客户前140天销购比不在合理区间内", "当日总零售销量<=0", "当日总库存量>前140天批发销量*1.4, 客户前140天销购比不在合理区间内", "刷扫异常, 客户前140天销购比不在合理区间内", "客户前140天销购比不在合理区间内, 当日总库存量>前140天批发销量*1.4", "当日总零售销量<=0, 客户前140天销购比不在合理区间内", "客户前140天销购比不在合理区间内, 刷扫异常", "总量勾稽关系异常", "当日损益量>库存量*0.02", "总量勾稽关系异常, 客户前140天销购比不在合理区间内"],
+            "data": [1003, 29, 10, 9, 6, 5, 5, 4, 4, 3]
+        };
+
+        const districtData = {
+            "labels": ["思明区局", "湖里区局", "第一分局", "集美区局"],
+            "customer_count": [39, 26, 56, 66],
+            "record_count": [233, 157, 298, 406],
+            "avg_abnormal": [5.97, 6.04, 5.32, 6.15]
+        };
+
+        const tierData = {
+            "labels": ["三十档", "二十三档", "二十九档", "二十八档", "二十六档", "二十七档", "二十一档", "二十四档", "十九档", "十四档"],
+            "record_count": [166, 114, 95, 77, 67, 52, 46, 44, 38, 36],
+            "avg_abnormal": [5.53, 7.13, 4.75, 4.28, 5.15, 3.71, 5.11, 4.4, 4.22, 5.14]
+        };
+
+        const trendData = {
+            "labels": ["2026-04-01", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-18"],
+            "data": [108, 135, 124, 115, 91, 92, 90, 84, 83, 86, 86]
+        };
+
+        const price采Data = {
+            "labels": ["否", "是"],
+            "customer_count": [176, 11],
+            "record_count": [1043, 51],
+            "avg_abnormal": [5.93, 4.64]
+        };
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 头部 -->
+    <header class="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">
+                        <i class="fas fa-chart-line mr-3"></i>异常客户剔除分析报告
+                    </h1>
+                    <p class="text-blue-100 text-lg">厦门市4月数据截至4月18日</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-blue-100">报告生成时间</div>
+                    <div class="text-lg font-semibold" id="currentDate"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container mx-auto px-6 py-8">
+        
+        <!-- 数据概览仪表板 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-tachometer-alt mr-3 text-blue-600"></i>数据概览
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">总异常记录</p>
+                            <p class="text-3xl font-bold text-gray-800" id="totalRecords">1,094</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">涉及客户数</p>
+                            <p class="text-3xl font-bold text-gray-800" id="totalCustomers">187</p>
+                        </div>
+                        <div class="bg-orange-100 p-3 rounded-full">
+                            <i class="fas fa-users text-orange-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">主要异常占比</p>
+                            <p class="text-3xl font-bold text-gray-800" id="mainAbnormalRatio">91.68%</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-chart-pie text-blue-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">覆盖区县</p>
+                            <p class="text-3xl font-bold text-gray-800" id="totalDistricts">4</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-map-marker-alt text-green-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 图表分析区域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            
+            <!-- 异常原因分布饼图 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-chart-pie mr-3 text-purple-600"></i>异常原因分布
+                </h3>
+                <div class="relative h-80">
+                    <canvas id="abnormalChart"></canvas>
+                </div>
+                <p class="text-sm text-gray-600 mt-4 text-center">主要异常原因：客户前140天销购比不在合理区间内</p>
+            </div>
+
+            <!-- 各区县异常记录对比 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-chart-bar mr-3 text-green-600"></i>各区县异常记录对比
+                </h3>
+                <div class="relative h-80">
+                    <canvas id="districtChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 客户分档异常分析 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-layer-group mr-3 text-indigo-600"></i>客户分档异常分析（前10名）
+                </h3>
+                <div class="relative h-80">
+                    <canvas id="tierChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 时间趋势分析 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-chart-line mr-3 text-red-600"></i>异常记录时间趋势
+                </h3>
+                <div class="relative h-80">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 价采户分析 -->
+        <section class="mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-balance-scale mr-3 text-yellow-600"></i>价采户 vs 非价采户异常对比
+                </h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="relative h-80">
+                        <canvas id="price采Chart"></canvas>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-800 mb-2">分析结论</h4>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-red-500 text-xs mt-2 mr-2"></i>
+                                    非价采户异常情况更严重，平均异常次数5.93次
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-green-500 text-xs mt-2 mr-2"></i>
+                                    价采户相对稳定，平均异常次数4.64次
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-blue-500 text-xs mt-2 mr-2"></i>
+                                    非价采户占总异常记录的95.3%
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 样例数据表格 -->
+        <section class="mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-table mr-3 text-gray-600"></i>样例数据（前10条记录）
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">业务日期</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">区县</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户名称</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户分档</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">是否价采户</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">异常信息</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="sampleTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据总结 -->
+        <section class="mb-12">
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-lightbulb mr-3 text-yellow-500"></i>数据分析总结
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-3">关键发现</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                厦门市4月异常客户剔除涉及187个客户，1094条异常记录
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                主要异常原因是"客户前140天销购比不在合理区间内"，占比91.68%
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                集美区异常记录最多（406条），湖里区平均异常次数最高
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                客户分档中，二十三档平均异常次数最高（7.13次/客户）
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-3">建议措施</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-blue-500 mr-2 mt-1"></i>
+                                重点关注销购比异常客户，建立预警机制
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-blue-500 mr-2 mt-1"></i>
+                                加强对集美区和湖里区的监管力度
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-blue-500 mr-2 mt-1"></i>
+                                针对二十三档等高风险客户分档制定专项管理策略
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-blue-500 mr-2 mt-1"></i>
+                                优化非价采户的监控体系，降低异常发生率
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-400">© 2024 异常客户分析系统 | 数据驱动决策</p>
+        </div>
+    </footer>
+
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置当前日期
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('zh-CN');
+            
+            // 初始化图表
+            initCharts();
+            
+            // 填充样例数据表格
+            fillSampleTable();
+        });
+
+        function initCharts() {
+            // 异常原因分布饼图
+            const abnormalCtx = document.getElementById('abnormalChart').getContext('2d');
+            new Chart(abnormalCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: abnormalData.labels,
+                    datasets: [{
+                        data: abnormalData.data,
+                        backgroundColor: [
+                            '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6',
+                            '#8B5CF6', '#EC4899', '#14B8A6', '#F43F5E', '#6366F1'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed * 100) / total).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 各区县异常记录对比柱状图
+            const districtCtx = document.getElementById('districtChart').getContext('2d');
+            new Chart(districtCtx, {
+                type: 'bar',
+                data: {
+                    labels: districtData.labels,
+                    datasets: [{
+                        label: '异常记录数量',
+                        data: districtData.record_count,
+                        backgroundColor: '#3B82F6',
+                        borderColor: '#1D4ED8',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: '平均异常次数',
+                        data: districtData.avg_abnormal,
+                        type: 'line',
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '异常记录数量'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '平均异常次数'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+
+            // 客户分档异常分析
+            const tierCtx = document.getElementById('tierChart').getContext('2d');
+            new Chart(tierCtx, {
+                type: 'bar',
+                data: {
+                    labels: tierData.labels,
+                    datasets: [{
+                        label: '异常记录数量',
+                        data: tierData.record_count,
+                        backgroundColor: '#8B5CF6',
+                        borderColor: '#7C3AED',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '异常记录数量'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '客户分档'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // 时间趋势分析
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: trendData.labels,
+                    datasets: [{
+                        label: '异常记录数量',
+                        data: trendData.data,
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#EF4444',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '异常记录数量'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '日期'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // 价采户对比
+            const price采Ctx = document.getElementById('price采Chart').getContext('2d');
+            new Chart(price采Ctx, {
+                type: 'bar',
+                data: {
+                    labels: price采Data.labels,
+                    datasets: [{
+                        label: '客户数量',
+                        data: price采Data.customer_count,
+                        backgroundColor: '#10B981',
+                        borderColor: '#059669',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: '平均异常次数',
+                        data: price采Data.avg_abnormal,
+                        type: 'line',
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '客户数量'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '平均异常次数'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function fillSampleTable() {
+            const tableBody = document.getElementById('sampleTable');
+            sampleData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                
+                const districtName = row.区县.replace('厦门市烟草专卖局', '').replace('（分公司）', '');
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${row.业务日期}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">${districtName}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${row.客户名称}</td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            ${row.客户分档名称}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.是否价采户 === '是' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                            ${row.是否价采户}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-600 max-w-xs truncate" title="${row.异常信息}">
+                        ${row.异常信息}
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
